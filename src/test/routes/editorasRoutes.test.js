@@ -1,5 +1,10 @@
 // import { afterEach, beforeEach, describe } from '@jest/globals';
-import { describe, expect, it } from '@jest/globals';
+import {
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import app from '../../app';
 
@@ -42,13 +47,11 @@ describe('POST em /editoras', () => {
 
     idResponse = resposta.body.content.id;
   });
-});
-
-describe('Delete em /editoras/id', () => {
-  it('Deve excluir uma editora', async () => {
+  it('Deve não adicionar nada ao passar o body vazio', async () => {
     await request(app)
-      .delete(`/editoras/${idResponse}`)
-      .expect(200);
+      .post('/editoras')
+      .send({})
+      .expect(400);
   });
 });
 
@@ -56,6 +59,33 @@ describe('GET em /editoras/id', () => {
   it('Deve retornar o recurso selecionado', async () => {
     await request(app)
       .get(`/editoras/${idResponse}`)
+      .expect(200);
+  });
+});
+
+// aplicando atalho para testar cada elemento
+/* pega cada elemento do array e roda os testes separadamente! */
+describe('PUT em /editoras/id', () => {
+  test.each([
+    ['nome', { nome: 'Casa do código' }],
+    ['cidade', { cidade: 'Fortaleza' }],
+    ['email', { email: 'e@email.com' }],
+  ])('Deve alterar o campo nome %s', async (chave, param) => {
+    const requisicao = { request };
+    const spy = jest.spyOn(requisicao, 'request');
+    await request(app)
+      .put(`/editoras/${idResponse}`)
+      .send(param)
+      .expect(204);
+
+    expect(spy).toHaveBeenCalled();
+  });
+});
+
+describe('Delete em /editoras/id', () => {
+  it('Deve excluir uma editora', async () => {
+    await request(app)
+      .delete(`/editoras/${idResponse}`)
       .expect(200);
   });
 });
